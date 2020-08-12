@@ -1,0 +1,24 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t calegari/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true calegari/react-test npm test
+
+after_success:
+  - docker build -t calegari/multi-client ./client
+  - docker build -t calegari/multi-nginx ./nginx
+  - docker build -t calegari/multi-server ./server
+  - docker build -t calegari/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "DOCKER_ID" --password-stdin
+
+  - docker push calegari/multi-client
+  - docker push calegari/multi-nginx
+  - docker push calegari/multi-server
+  - docker push calegari/multi-worker
+  
